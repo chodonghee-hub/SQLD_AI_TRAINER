@@ -11,6 +11,7 @@ Swagger UI:
     JWT_SECRET_KEY   JWT 서명 키 (기본값: dev용 임시 키)
     GROQ_API_KEY     Groq LLM API 키 (없으면 RAG fallback)
 """
+import os
 import pathlib
 from contextlib import asynccontextmanager
 
@@ -55,10 +56,11 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# CORS — React 개발 서버 허용
+# CORS — 로컬 개발 서버 + 환경변수로 추가 오리진 허용 (프로덕션 도메인은 CORS_ORIGINS에 설정)
+_extra_origins = [o.strip() for o in os.getenv("CORS_ORIGINS", "").split(",") if o.strip()]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://localhost:5173"],
+    allow_origins=["http://localhost:3000", "http://localhost:5173", *_extra_origins],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
