@@ -17,9 +17,9 @@ weighted avg       0.66      0.66      0.66     11643
 
 === XGBoost Comparison ===
 Model: XGBoost (n_estimators=200, max_depth=6, lr=0.05)
-AUC-ROC: 0.695
+AUC-ROC: 0.696
 F1 (binary): 0.601
-Precision: 0.630  |  Recall: 0.574
+Precision: 0.631  |  Recall: 0.573
 
               precision    recall  f1-score   support
 
