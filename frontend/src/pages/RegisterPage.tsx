@@ -27,7 +27,11 @@ export default function RegisterPage() {
     setLoading(true);
     try {
       const res = await authApi.register(form.username, form.email, form.password);
-      login(res.data.access_token, res.data.user);
+      login(res.data.access_token, {
+        user_id: res.data.user_id,
+        username: res.data.username ?? form.username,
+        email: form.email,
+      });
       navigate('/dashboard');
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail;

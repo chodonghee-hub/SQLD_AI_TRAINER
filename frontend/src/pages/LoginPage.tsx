@@ -23,7 +23,11 @@ export default function LoginPage() {
     setLoading(true);
     try {
       const res = await authApi.login(email, password);
-      login(res.data.access_token, res.data.user);
+      login(res.data.access_token, {
+        user_id: res.data.user_id,
+        username: res.data.username ?? 'User',
+        email,
+      });
       navigate(from, { replace: true });
     } catch {
       setError('이메일 또는 비밀번호가 올바르지 않습니다.');
