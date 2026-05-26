@@ -18,6 +18,7 @@ class RecommendedQuestion(BaseModel):
     score: float
     in_zpd: bool = False
     reason: str
+    p_correct: Optional[float] = None
 
 
 class RecommendResponse(BaseModel):

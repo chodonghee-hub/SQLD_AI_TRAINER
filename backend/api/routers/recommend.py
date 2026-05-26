@@ -35,7 +35,7 @@ def _get_user_logs_df(user_id: str, db: Session, questions_df: pd.DataFrame) -> 
     return df
 
 
-def _build_dkt_probs(state, user_logs_df: pd.DataFrame) -> dict | None:
+def _build_dkt_probs(state, user_logs_df: pd.DataFrame):
     """DKT로 각 문제에 대한 P(correct) 계산."""
     if state.dkt_model is None or state.dkt_question_ids is None:
         return None
@@ -167,6 +167,7 @@ def recommend_questions(
                 score=1.0,
                 in_zpd=in_zpd,
                 reason=reason,
+                p_correct=round(p_correct, 4) if dkt_probs and p_correct >= 0 else None,
             )
         )
 
