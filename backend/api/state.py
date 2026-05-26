@@ -24,19 +24,19 @@ class AppState:
     """FastAPI app.state 에 바인딩되는 컨테이너."""
 
     def __init__(self):
-        self.questions_df: pd.DataFrame | None = None
-        self.logs_df: pd.DataFrame | None = None
+        self.questions_df = None  # pd.DataFrame
+        self.logs_df = None  # pd.DataFrame
 
         # Phase 2 — 분류기 / 오답 예측기
-        self.classifier: dict | None = None
+        self.classifier = None  # dict
         self.predictor_model = None
-        self.predictor_feature_names: list | None = None
+        self.predictor_feature_names = None  # list
 
         # Phase 3 — 추천기 / 임베더 / DKT
-        self.recommender: dict | None = None
+        self.recommender = None  # dict
         self.dkt_model = None
-        self.dkt_question_ids: list | None = None
-        self.device: torch.device = torch.device("cpu")
+        self.dkt_question_ids = None  # list
+        self.device = torch.device("cpu")
 
         # Phase 4 — RAG 해설기
         self.explainer = None
@@ -56,7 +56,7 @@ class AppState:
         l_path = OUTPUTS_DIR / "user_logs.csv"
         self.questions_df = pd.read_csv(q_path)
         self.logs_df = pd.read_csv(l_path)
-        print(f"[AppState] 데이터 로드 — 문제 {len(self.questions_df)}건, 로그 {len(self.logs_df)}건")
+        print(f"[AppState] 데이터 로드: 문제 {len(self.questions_df)}건, 로그 {len(self.logs_df)}건")
 
     def _load_recommender(self) -> None:
         try:

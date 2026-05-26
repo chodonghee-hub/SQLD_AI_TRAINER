@@ -1,3 +1,5 @@
+from typing import Optional
+
 from pydantic import BaseModel, EmailStr
 
 
@@ -16,5 +18,5 @@ class TokenResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
     is_guest: bool = False
-    user_id: str | None = None
-    username: str | None = None
+    user_id: Optional[str] = None
+    username: Optional[str] = None
