@@ -20,6 +20,12 @@ reports/
 *.jpeg
 *.gif
 
+# Node.js 의존성 (대용량, 자동 생성)
+node_modules/
+**/node_modules/
+package-lock.json
+**/package-lock.json
+
 # Python 캐시
 __pycache__/
 *.pyc
