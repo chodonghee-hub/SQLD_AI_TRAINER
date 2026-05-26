@@ -1,37 +1,37 @@
 === DKT (Deep Knowledge Tracing) 평가 보고서 ===
 
-Best Val AUC-ROC : 0.6242
-Best Epoch       : 26
-Final Train Loss : 0.5857
+Best Val AUC-ROC : 0.6181
+Best Epoch       : 30
+Final Train Loss : 0.5907
 
 Epoch별 Val AUC:
-  Epoch 01: 0.5044
-  Epoch 02: 0.5063
-  Epoch 03: 0.5085
-  Epoch 04: 0.5108
+  Epoch 01: 0.5013
+  Epoch 02: 0.5042
+  Epoch 03: 0.5072
+  Epoch 04: 0.5101
   Epoch 05: 0.5131
-  Epoch 06: 0.5157
-  Epoch 07: 0.5185
-  Epoch 08: 0.5220
-  Epoch 09: 0.5262
-  Epoch 10: 0.5318
-  Epoch 11: 0.5390
-  Epoch 12: 0.5433
-  Epoch 13: 0.5474
-  Epoch 14: 0.5494
-  Epoch 15: 0.5579
-  Epoch 16: 0.5666
-  Epoch 17: 0.5652
-  Epoch 18: 0.5749
-  Epoch 19: 0.5809
-  Epoch 20: 0.5868
-  Epoch 21: 0.5837
-  Epoch 22: 0.6025
-  Epoch 23: 0.6061
-  Epoch 24: 0.6174
-  Epoch 25: 0.6166
-  Epoch 26: 0.6242
-  Epoch 27: 0.6240
-  Epoch 28: 0.6232
-  Epoch 29: 0.6216
-  Epoch 30: 0.6032
+  Epoch 06: 0.5164
+  Epoch 07: 0.5199
+  Epoch 08: 0.5235
+  Epoch 09: 0.5276
+  Epoch 10: 0.5322
+  Epoch 11: 0.5376
+  Epoch 12: 0.5403
+  Epoch 13: 0.5446
+  Epoch 14: 0.5483
+  Epoch 15: 0.5553
+  Epoch 16: 0.5595
+  Epoch 17: 0.5789
+  Epoch 18: 0.5479
+  Epoch 19: 0.5735
+  Epoch 20: 0.5677
+  Epoch 21: 0.5806
+  Epoch 22: 0.5763
+  Epoch 23: 0.5889
+  Epoch 24: 0.5893
+  Epoch 25: 0.5970
+  Epoch 26: 0.6010
+  Epoch 27: 0.6074
+  Epoch 28: 0.6145
+  Epoch 29: 0.6179
+  Epoch 30: 0.6181
