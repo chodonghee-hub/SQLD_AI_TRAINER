@@ -4,6 +4,21 @@ datasets/json/
 
 # 생성된 출력물 — 소스가 아닌 산출물
 outputs/
+reports/
+
+# 데이터베이스 파일 (바이너리)
+*.db
+*.sqlite
+*.sqlite3
+
+# 바이너리 데이터 파일
+*.npy
+
+# 이미지 파일 (바이너리)
+*.png
+*.jpg
+*.jpeg
+*.gif
 
 # Python 캐시
 __pycache__/
