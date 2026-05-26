@@ -2,7 +2,7 @@ import json as _json
 from typing import Optional
 
 import pandas as pd
-from fastapi import APIRouter, HTTPException, Query, Request
+from fastapi import APIRouter, HTTPException, Query, Request, status
 
 from api.schemas.questions import QuestionDetail, QuestionListResponse, QuestionSummary
 
@@ -65,6 +65,16 @@ def _row_to_detail(row) -> QuestionDetail:
     )
 
 
+def _get_questions_df(request: Request):
+    df = getattr(getattr(request.app.state, "models", None), "questions_df", None)
+    if df is None:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="서버가 아직 초기화 중입니다. 잠시 후 다시 시도해주세요.",
+        )
+    return df
+
+
 @router.get("", response_model=QuestionListResponse, summary="문제 목록 조회 (공개)")
 def list_questions(
     request: Request,
@@ -74,7 +84,7 @@ def list_questions(
     limit: int = Query(20, ge=1, le=100),
     offset: int = Query(0, ge=0),
 ):
-    df = request.app.state.models.questions_df.copy()
+    df = _get_questions_df(request).copy()
 
     if chapter_name:
         df = df[df["chapter_name"].str.contains(chapter_name, na=False)]
@@ -91,7 +101,7 @@ def list_questions(
 
 @router.get("/{question_id}", response_model=QuestionDetail, summary="문제 상세 조회 (공개)")
 def get_question(question_id: str, request: Request):
-    df = request.app.state.models.questions_df
+    df = _get_questions_df(request)
     match = df[df["question_id"] == question_id]
     if match.empty:
         raise HTTPException(status_code=404, detail=f"문제 {question_id}를 찾을 수 없습니다.")
