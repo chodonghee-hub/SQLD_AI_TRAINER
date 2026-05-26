@@ -34,8 +34,8 @@ async def lifespan(app: FastAPI):
     # app.state 먼저 바인딩 → /health 가 즉시 응답 가능
     app.state.models = app_state
     # 모델 로딩을 백그라운드 스레드에서 실행 (서버 시작 차단 없음)
-    loop = asyncio.get_event_loop()
-    asyncio.ensure_future(loop.run_in_executor(None, app_state.load))
+    loop = asyncio.get_running_loop()
+    loop.run_in_executor(None, app_state.load)
     yield
 
 
