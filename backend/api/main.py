@@ -11,6 +11,7 @@ Swagger UI:
     JWT_SECRET_KEY   JWT 서명 키 (기본값: dev용 임시 키)
     GROQ_API_KEY     Groq LLM API 키 (없으면 RAG fallback)
 """
+import asyncio
 import os
 import pathlib
 from contextlib import asynccontextmanager
@@ -29,12 +30,13 @@ from api.state import app_state
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # 시작: DB 초기화 + 모델 로딩
     create_tables()
-    app_state.load()
+    # app.state 먼저 바인딩 → /health 가 즉시 응답 가능
     app.state.models = app_state
+    # 모델 로딩을 백그라운드 스레드에서 실행 (서버 시작 차단 없음)
+    loop = asyncio.get_event_loop()
+    asyncio.ensure_future(loop.run_in_executor(None, app_state.load))
     yield
-    # 종료: 정리 작업 없음 (모델은 GC에 위임)
 
 
 app = FastAPI(
