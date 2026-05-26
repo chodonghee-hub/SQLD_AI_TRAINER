@@ -17,7 +17,7 @@
   --text-3:      rgba(0,0,0,0.56);
   --text-mute:   rgba(0,0,0,0.48);
 
-  /* brand accent */
+  /* brand accent (the ONLY chromatic color) */
   --accent:      #0071e3;
   --accent-link: #0066cc;
   --accent-on-dark: #2997ff;
@@ -34,7 +34,7 @@
   --danger-soft:  #fef2f2;
   --info-soft:    #eff6ff;
 
-  /* AI accent */
+  /* AI accent (we keep Apple Blue family; AI marker is a glyph + label) */
   --ai-tint: #eef4fd;
 
   /* borders */
@@ -52,9 +52,10 @@
   --shadow-soft: rgba(0,0,0,0.22) 3px 5px 30px 0px;
 }
 
-* { box-sizing: border-box; margin: 0; padding: 0; }
+* { box-sizing: border-box; }
 
 html, body {
+  margin: 0;
   background: var(--bg);
   color: var(--text);
   font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display",
@@ -64,12 +65,6 @@ html, body {
   letter-spacing: -0.022em;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-}
-
-#root {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
 }
 
 /* ============== typography ============== */
@@ -100,10 +95,11 @@ html, body {
 .screen {
   background: var(--bg);
   width: 100%;
-  min-height: 100vh;
+  min-height: 100%;
   display: flex;
   flex-direction: column;
 }
+.screen.is-dark { background: #000; color: #fff; }
 
 .page {
   width: 100%;
@@ -139,7 +135,6 @@ html, body {
 .topbar .brand {
   display: flex; align-items: center; gap: 8px;
   font-weight: 600; font-size: 16px; letter-spacing: -0.01em;
-  text-decoration: none; color: var(--text);
 }
 .topbar .brand .glyph {
   width: 22px; height: 22px; border-radius: 6px;
@@ -187,15 +182,14 @@ html, body {
 .btn-ghost:hover { background: var(--ai-tint); }
 .btn-lg { padding: 12px 22px; font-size: 15px; }
 .btn-sm { padding: 5px 12px; font-size: 13px; }
-.btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
 .link-pill {
   color: var(--accent-link);
   font-size: 14px;
   cursor: pointer;
-  text-decoration: none;
 }
 .link-pill:hover { text-decoration: underline; }
+.link-pill .chev { margin-left: 2px; }
 
 /* ============== cards ============== */
 .card {
@@ -203,6 +197,15 @@ html, body {
   border-radius: var(--r-lg);
   padding: 24px;
   border: 1px solid var(--border-soft);
+}
+.card.is-fog { background: var(--surface-2); }
+.card.is-flat { border: 1px solid var(--border-soft); }
+.card.is-feature {
+  background: var(--surface);
+  border: 1px solid var(--border-soft);
+}
+.card.is-dark {
+  background: #1d1d1f; color: #fff; border: none;
 }
 .card-pad-sm { padding: 16px; }
 .card-pad-lg { padding: 32px; }
@@ -390,6 +393,30 @@ html, body {
   background: var(--danger); border-color: var(--danger); color: #fff;
 }
 
+/* ============== chart ============== */
+.bars-chart {
+  display: flex; align-items: flex-end; justify-content: space-between;
+  gap: 8px; height: 220px;
+  position: relative; padding: 12px 0 24px;
+}
+.bars-chart::before {
+  content: ""; position: absolute;
+  left: 0; right: 0; top: 50%;
+  border-top: 1px dashed var(--border);
+}
+.bars-chart::after {
+  content: "50%";
+  position: absolute; right: 0; top: calc(50% - 16px);
+  font-size: 11px; color: var(--text-3);
+  background: var(--surface); padding: 0 4px;
+}
+.bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; height: 100%; justify-content: flex-end; }
+.bar-vert { width: 100%; max-width: 28px; border-radius: 4px 4px 0 0; min-height: 8px; }
+.bar-vert.is-success { background: var(--success); }
+.bar-vert.is-warning { background: var(--warning); }
+.bar-vert.is-danger  { background: var(--danger); }
+.bar-label { font-size: 10px; color: var(--text-3); letter-spacing: 0; }
+
 /* ============== AI panel ============== */
 .ai-panel {
   background: linear-gradient(180deg, var(--ai-tint) 0%, var(--surface) 100%);
@@ -416,8 +443,6 @@ html, body {
   background: var(--accent);
   border-radius: 999px;
   position: relative; cursor: pointer;
-  border: none;
-  transition: background 0.15s;
 }
 .toggle::after {
   content: ""; position: absolute;
@@ -434,6 +459,12 @@ html, body {
 .divider { height: 1px; background: var(--border-soft); margin: 24px 0; }
 .sep-vert { width: 1px; background: var(--border-soft); }
 
+.kbd-num {
+  font-family: "SF Mono", ui-monospace, monospace;
+  font-size: 11px;
+  color: var(--text-3);
+}
+
 /* hero (Landing) */
 .hero {
   text-align: center;
@@ -442,6 +473,8 @@ html, body {
   border-radius: 18px;
   border: 1px solid var(--border-soft);
 }
+.hero .eyebrow { color: var(--accent); font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
+.hero h1 { margin: 12px 0 16px; }
 .hero p { max-width: 640px; margin: 0 auto; color: var(--text-2); font-size: 19px; line-height: 1.5; }
 .hero .cta-row { display: flex; gap: 12px; justify-content: center; margin-top: 28px; }
 
@@ -457,6 +490,7 @@ html, body {
 .stats-bar .n { font-size: 32px; font-weight: 600; letter-spacing: -0.005em; color: var(--text); font-feature-settings: "tnum"; }
 .stats-bar .l { font-size: 13px; color: var(--text-3); margin-top: 4px; letter-spacing: -0.01em; }
 
+/* feature card on landing */
 .feat {
   background: var(--surface);
   border: 1px solid var(--border-soft);
@@ -490,6 +524,7 @@ html, body {
 
 /* recommend rank */
 .rank-num {
+  font-family: -apple-system, "SF Pro Display", "Helvetica Neue", sans-serif;
   font-size: 36px; font-weight: 600;
   letter-spacing: -0.005em;
   color: var(--border);
@@ -509,27 +544,3 @@ html, body {
 .pager .p:hover { background: var(--surface-3); }
 .pager .p.is-active { background: var(--text); color: #fff; }
 .pager .p.is-dis { color: var(--text-mute); cursor: default; }
-
-/* alert */
-.alert {
-  border-radius: var(--r-md);
-  padding: 12px 16px;
-  font-size: 14px;
-  margin-bottom: 16px;
-}
-.alert.is-error { background: var(--danger-soft); color: #b91c1c; border: 1px solid #fecaca; }
-.alert.is-success { background: var(--success-soft); color: #047857; border: 1px solid #a7f3d0; }
-.alert.is-info { background: var(--info-soft); color: #1d4ed8; border: 1px solid #bfdbfe; }
-
-/* spinner */
-@keyframes spin { to { transform: rotate(360deg); } }
-.spinner {
-  width: 20px; height: 20px;
-  border: 2px solid var(--border);
-  border-top-color: var(--accent);
-  border-radius: 50%;
-  animation: spin 0.6s linear infinite;
-  display: inline-block;
-}
-.spinner.is-sm { width: 14px; height: 14px; }
-.spinner.is-lg { width: 32px; height: 32px; border-width: 3px; }
