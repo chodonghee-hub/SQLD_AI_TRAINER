@@ -25,25 +25,23 @@ export default function QuestionDetailPage() {
   const [similarQuestions, setSimilarQuestions] = useState<Parameters<typeof AiExplanation>[0]['similarQuestions']>([]);
   const [aiLoading, setAiLoading] = useState(false);
 
-  const qid = Number(id);
+  const qid = id ?? '';
 
   const { data: question, isLoading } = useQuery({
     queryKey: ['question', qid],
     queryFn: () => questionsApi.detail(qid).then((r) => r.data),
     staleTime: 10 * 60 * 1000,
+    enabled: !!qid,
   });
 
   const { data: predict } = useQuery({
     queryKey: ['predict', user?.user_id, qid],
     queryFn: () => predictApi.errorProb(user!.user_id, qid).then((r) => r.data),
-    enabled: !!user && !isGuest,
+    enabled: !!user && !isGuest && !!qid,
   });
 
   const submitMutation = useMutation({
-    mutationFn: ({ sel }: { sel: number }) => {
-      const isCorrect = sel === question?.correct_answer;
-      return logsApi.submit(qid, sel, isCorrect);
-    },
+    mutationFn: ({ sel }: { sel: number }) => logsApi.submit(qid, sel),
     onSuccess: () => setStage('post'),
   });
 
@@ -61,7 +59,7 @@ export default function QuestionDetailPage() {
     setAiLoading(true);
     try {
       const res = await explainApi.explain(qid);
-      setExplanation(res.data.explanation ?? '');
+      setExplanation(res.data.rag_explanation ?? '');
       setSimilarQuestions(res.data.similar_questions ?? []);
     } catch {
       setExplanation('해설을 불러오는 데 실패했습니다.');
@@ -88,8 +86,12 @@ export default function QuestionDetailPage() {
     );
   }
 
-  const choices = question.choices ?? question.options ?? [];
-  const correct = question.correct_answer;
+  const choiceCount = question.choices?.length ?? (question as { choice_count?: number }).choice_count ?? 4;
+  const rawChoices: { number: number; text: string }[] = Array.isArray(question.choices)
+    ? question.choices
+    : Array.from({ length: choiceCount }, (_, i) => ({ number: i + 1, text: `선택지 ${i + 1}` }));
+  const choices = rawChoices;
+  const correct = question.correct_answer != null ? Number(question.correct_answer) : null;
 
   return (
     <PageLayout narrow>
@@ -100,8 +102,8 @@ export default function QuestionDetailPage() {
       <div className="card card-pad-lg">
         <div className="row gap-6" style={{ flexWrap: 'wrap' }}>
           <span className="tag is-light">{question.chapter_name}</span>
-          <DifficultyBadge difficulty={question.difficulty} />
-          <span className="tag">{question.question_type}</span>
+          {question.difficulty_label && <DifficultyBadge difficulty={question.difficulty_label} />}
+          {question.question_type && <span className="tag">{question.question_type}</span>}
           <span style={{ marginLeft: 'auto' }} className="t-caption">문제 #{qid}</span>
           {stage === 'post' && (
             <span className="tag" style={{
@@ -162,7 +164,7 @@ export default function QuestionDetailPage() {
         {(stage === 'post' || stage === 'ai') && (
           <>
             <h3 className="t-h3" style={{ marginTop: 20, marginBottom: 12 }}>결과</h3>
-            <ChoiceList choices={choices} selected={selected} correct={correct} mode="result" />
+            <ChoiceList choices={choices} selected={selected} correct={correct ?? undefined} mode="result" />
             <div className="row" style={{ justifyContent: 'space-between', marginTop: 24, gap: 12 }}>
               <div className="row gap-8">
                 <button className="btn btn-outline" onClick={() => navigate('/questions')}>목록으로</button>

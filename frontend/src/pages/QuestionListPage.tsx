@@ -12,12 +12,13 @@ export default function QuestionListPage() {
   const [filters, setFilters] = useState<Filters>(DEFAULT_FILTERS);
   const [page, setPage] = useState(1);
 
+  const PAGE_SIZE = 12;
   const params = {
     ...(filters.chapters.length > 0 && { chapter_name: filters.chapters.join(',') }),
     ...(filters.difficulty !== '전체' && { difficulty: filters.difficulty }),
     ...(filters.question_type !== '전체' && { question_type: filters.question_type }),
-    page,
-    size: 12,
+    limit: PAGE_SIZE,
+    offset: (page - 1) * PAGE_SIZE,
   };
 
   const { data, isLoading } = useQuery({
@@ -26,9 +27,9 @@ export default function QuestionListPage() {
     staleTime: 5 * 60 * 1000,
   });
 
-  const questions = data?.questions ?? data?.items ?? [];
+  const questions = data?.questions ?? [];
   const total = data?.total ?? 0;
-  const totalPages = Math.ceil(total / 12) || 1;
+  const totalPages = Math.ceil(total / PAGE_SIZE) || 1;
 
   const activeFilters = [
     ...filters.chapters,

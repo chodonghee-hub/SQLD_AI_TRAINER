@@ -2,12 +2,12 @@ import { Link } from 'react-router-dom';
 import DifficultyBadge from '../ui/DifficultyBadge';
 
 interface Question {
-  question_id: number;
+  question_id: string;
   question_text: string;
   chapter_name: string;
-  difficulty: string;
-  question_type: string;
-  has_sql: boolean;
+  difficulty_label?: string | null;
+  question_type?: string | null;
+  has_sql?: boolean | null;
   attempt_count?: number;
   accuracy?: number;
 }
@@ -17,8 +17,8 @@ export default function QuestionCard({ q }: { q: Question }) {
     <div className="card card-pad-sm" style={{ cursor: 'pointer' }}>
       <div className="row gap-6" style={{ flexWrap: 'wrap' }}>
         <span className="tag is-light">{q.chapter_name}</span>
-        <DifficultyBadge difficulty={q.difficulty} />
-        <span className="tag">{q.question_type}</span>
+        {q.difficulty_label && <DifficultyBadge difficulty={q.difficulty_label} />}
+        {q.question_type && <span className="tag">{q.question_type}</span>}
         {q.has_sql && <span className="tag">SQL</span>}
       </div>
       <p className="t-body" style={{
