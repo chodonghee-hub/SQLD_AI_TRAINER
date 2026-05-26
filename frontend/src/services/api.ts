@@ -27,32 +27,32 @@ export interface QuestionFilters {
   chapter_name?: string;
   difficulty?: string;
   question_type?: string;
-  page?: number;
-  size?: number;
+  limit?: number;
+  offset?: number;
 }
 
 export const questionsApi = {
   list: (filters: QuestionFilters) =>
     apiClient.get('/questions', { params: filters }),
-  detail: (id: number) =>
+  detail: (id: string) =>
     apiClient.get(`/questions/${id}`),
 };
 
 // ── Logs ──────────────────────────────────────────────
 export const logsApi = {
-  submit: (question_id: number, selected: number, is_correct: boolean) =>
-    apiClient.post('/logs', { question_id, selected_answer: selected, is_correct }),
+  submit: (question_id: string, selected: number) =>
+    apiClient.post('/logs', { question_id, selected_answer: selected }),
 };
 
 // ── Predict ───────────────────────────────────────────
 export const predictApi = {
-  errorProb: (user_id: string, question_id: number) =>
+  errorProb: (user_id: string, question_id: string) =>
     apiClient.post('/predict', { user_id, question_id }),
 };
 
 // ── Explain ───────────────────────────────────────────
 export const explainApi = {
-  explain: (question_id: number) =>
+  explain: (question_id: string) =>
     apiClient.post('/explain', { question_id }),
 };
 
