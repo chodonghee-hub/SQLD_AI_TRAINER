@@ -6,7 +6,7 @@ import {
 interface ChapterStat {
   chapter_name: string;
   accuracy: number;
-  attempts: number;
+  total_attempts: number;
 }
 
 function barColor(accuracy: number) {
@@ -20,7 +20,7 @@ export default function AccuracyChart({ data }: { data: ChapterStat[] }) {
     name: d.chapter_name.split(' ')[0],
     fullName: d.chapter_name,
     accuracy: Math.round(d.accuracy * 100),
-    attempts: d.attempts,
+    attempts: d.total_attempts,
   }));
 
   return (

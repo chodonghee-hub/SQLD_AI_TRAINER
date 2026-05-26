@@ -32,7 +32,7 @@ export default function DashboardPage() {
   const total_attempts = data?.total_attempts ?? 0;
   const overall_accuracy = data?.overall_accuracy ?? 0;
   const chapter_stats = data?.chapter_stats ?? [];
-  const zpd_count = data?.zpd_count ?? 0;
+  const zpd_count = data?.zpd_available_count ?? 0;
   const weak_chapters = chapter_stats.filter((c: { accuracy: number }) => c.accuracy < 0.5);
 
   const accuracyColor = overall_accuracy >= 0.6 ? 'var(--success)' : 'var(--warning)';

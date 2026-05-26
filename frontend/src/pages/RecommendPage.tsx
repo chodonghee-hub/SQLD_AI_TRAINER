@@ -114,7 +114,7 @@ export default function RecommendPage() {
             </Link>
           </div>
         ) : (
-          questions.map((q: Parameters<typeof RecommendCard>[0], i: number) => (
+          questions.map((q: Omit<Parameters<typeof RecommendCard>[0], 'rank'>, i: number) => (
             <RecommendCard key={q.question_id} rank={i + 1} {...q} />
           ))
         )}
