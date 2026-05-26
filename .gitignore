@@ -1,10 +1,11 @@
 PRD/
-datasets/
+datasets/*.pdf
+datasets/*.PDF
 workflow/
 trouble_shooting/
 
-# 생성 데이터 (재현 가능하므로 추적 불필요)
-outputs/
+# 생성 데이터 (Railway Docker 빌드에 필요하므로 추적)
+# outputs/
 
 # 데이터베이스 파일
 *.db
@@ -33,19 +34,20 @@ secrets.yaml
 .ipynb_checkpoints/
 *.ipynb_checkpoints
 
-# 모델 파일 (용량 큼)
-*.pkl
-*.joblib
-*.pt
-*.pth
-*.h5
-*.onnx
-models/
+# 모델 파일 — 실제 크기 확인 후 ~30MB 수준이므로 추적 허용
+# (최대 단일 파일: predictor_rf.joblib 17.8MB)
+# *.pkl
+# *.joblib
+# *.pt
+# *.pth
+# *.h5
+# *.onnx
+# models/
 
 # 벡터 인덱스
-*.faiss
-*.index
-faiss_index/
+# *.faiss
+# *.index
+# faiss_index/
 
 # IDE
 .vscode/
@@ -71,6 +73,6 @@ frontend/.env
 # Backend (경로 변경 반영)
 backend/.venv/
 backend/outputs/
-backend/models/
+# backend/models/   ← Docker 빌드에 필요하므로 추적
 backend/*.db
 backend/*.sqlite
