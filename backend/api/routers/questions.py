@@ -1,15 +1,12 @@
+import json as _json
 from typing import Optional
 
+import pandas as pd
 from fastapi import APIRouter, HTTPException, Query, Request
 
 from api.schemas.questions import QuestionDetail, QuestionListResponse, QuestionSummary
 
 router = APIRouter(prefix="/questions", tags=["questions"])
-
-
-from typing import Optional
-
-import pandas as pd
 
 
 def _safe_str(val) -> Optional[str]:
@@ -25,6 +22,17 @@ def _get_has_sql(row) -> Optional[bool]:
         if val is not None and not (isinstance(val, float) and pd.isna(val)):
             return bool(val)
     return None
+
+
+def _parse_choices(raw):
+    if raw is None or (isinstance(raw, float) and pd.isna(raw)):
+        return None
+    if isinstance(raw, str):
+        try:
+            return _json.loads(raw)
+        except Exception:
+            return None
+    return raw
 
 
 def _row_to_summary(row) -> QuestionSummary:
@@ -49,7 +57,7 @@ def _row_to_detail(row) -> QuestionDetail:
         question_type=_safe_str(row.get("question_type")),
         difficulty_label=_safe_str(row.get("difficulty_label")),
         question_text=str(row.get("question_text", "") or ""),
-        choices=row.get("choices") if row.get("choices") is not None else None,
+        choices=_parse_choices(row.get("choices")),
         correct_answer=int(correct_raw) if correct_raw is not None and str(correct_raw).isdigit() else correct_raw,
         explanation=_safe_str(row.get("explanation")),
         has_sql=_get_has_sql(row),

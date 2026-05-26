@@ -42,6 +42,14 @@ def _extract_choice_kinds(choices: list) -> List[str]:
     return [c.get("choice_kind", "") for c in choices]
 
 
+def _extract_choices_json(choices: list) -> str:
+    import json
+    return json.dumps(
+        [{"number": c["choice_number"], "text": c.get("choice_text", "")} for c in choices],
+        ensure_ascii=False,
+    )
+
+
 def parse_all() -> pd.DataFrame:
     rows = []
     for filepath in sorted(JSON_DIR.glob("*.json")):
@@ -72,6 +80,7 @@ def parse_all() -> pd.DataFrame:
                 "has_sql_asset": bool(sql_code),
                 "choice_count": len(q.get("choices", [])),
                 "choice_kinds": ",".join(choice_kinds),
+                "choices": _extract_choices_json(q.get("choices", [])),
                 "correct_choice": correct_choice,
                 "explanation": explanation,
             })

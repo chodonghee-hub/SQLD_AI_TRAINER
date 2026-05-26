@@ -15,6 +15,7 @@ if str(_SRC_MODELS) not in sys.path:
 
 MODEL_DIR = pathlib.Path(__file__).resolve().parent.parent / "models"
 OUTPUTS_DIR = pathlib.Path(__file__).resolve().parent.parent / "outputs"
+JSON_DIR = pathlib.Path(__file__).resolve().parent.parent.parent / "datasets" / "json"
 
 # RAG 설명 캐시 (question_id → 생성 결과): 동일 문제 중복 API 호출 방지
 _explain_cache: dict = {}
@@ -52,10 +53,28 @@ class AppState:
 
     # ------------------------------------------------------------------
     def _load_data(self) -> None:
+        import json as _json
+
         q_path = OUTPUTS_DIR / "questions.csv"
         l_path = OUTPUTS_DIR / "user_logs.csv"
         self.questions_df = pd.read_csv(q_path)
         self.logs_df = pd.read_csv(l_path)
+
+        if "choices" not in self.questions_df.columns and JSON_DIR.exists():
+            choices_map: dict = {}
+            for filepath in sorted(JSON_DIR.glob("*.json")):
+                data = _json.loads(filepath.read_text(encoding="utf-8"))
+                sid, cid = data["subject_id"], data["chapter_id"]
+                for q in data["questions"]:
+                    qid = f"{sid}_{cid}_{q['question_number']}"
+                    choices_map[qid] = _json.dumps(
+                        [{"number": c["choice_number"], "text": c.get("choice_text", "")}
+                         for c in q.get("choices", [])],
+                        ensure_ascii=False,
+                    )
+            self.questions_df["choices"] = self.questions_df["question_id"].map(choices_map)
+            print(f"[AppState] 선택지 텍스트 병합: {self.questions_df['choices'].notna().sum()}건")
+
         print(f"[AppState] 데이터 로드: 문제 {len(self.questions_df)}건, 로그 {len(self.logs_df)}건")
 
     def _load_recommender(self) -> None:

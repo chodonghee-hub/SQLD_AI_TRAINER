@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import PageLayout from '../components/layout/PageLayout';
@@ -26,6 +26,13 @@ export default function QuestionDetailPage() {
   const [aiLoading, setAiLoading] = useState(false);
 
   const qid = id ?? '';
+
+  useEffect(() => {
+    setSelected(null);
+    setStage('pre');
+    setExplanation('');
+    setSimilarQuestions([]);
+  }, [qid]);
 
   const { data: question, isLoading } = useQuery({
     queryKey: ['question', qid],
@@ -170,7 +177,15 @@ export default function QuestionDetailPage() {
                 <button className="btn btn-outline" onClick={() => navigate('/questions')}>목록으로</button>
               </div>
               {stage === 'post' && (
-                <button className="btn btn-primary btn-lg" onClick={handleShowAI}>
+                <button
+                  className="btn btn-primary btn-lg"
+                  onClick={handleShowAI}
+                  style={{ flexDirection: 'column', alignItems: 'center', gap: 2 }}
+                >
+                  {selected === correct
+                    ? <span style={{ fontSize: 12, opacity: 0.85 }}>정답입니다! 계속 풀어볼까요?</span>
+                    : <span style={{ fontSize: 12, opacity: 0.85 }}>오답입니다. 해설을 확인해보세요.</span>
+                  }
                   <AiBadge>AI 해설 보기</AiBadge>
                 </button>
               )}
