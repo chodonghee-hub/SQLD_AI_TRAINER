@@ -28,7 +28,8 @@ def submit_answer(
         raise HTTPException(status_code=404, detail=f"문제 {body.question_id}를 찾을 수 없습니다.")
 
     row = match.iloc[0]
-    correct_answer = row.get("correct_answer")
+    _raw = row.get("correct_choice") if row.get("correct_choice") is not None else row.get("correct_answer")
+    correct_answer = int(_raw) if _raw is not None else None
 
     # 선택지 제출이 없을 경우 정답 여부를 알 수 없으므로 오답 처리
     is_correct = False

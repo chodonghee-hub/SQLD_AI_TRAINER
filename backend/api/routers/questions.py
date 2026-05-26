@@ -7,29 +7,53 @@ from api.schemas.questions import QuestionDetail, QuestionListResponse, Question
 router = APIRouter(prefix="/questions", tags=["questions"])
 
 
+from typing import Optional
+
+import pandas as pd
+
+
+def _safe_str(val) -> Optional[str]:
+    if val is None or (isinstance(val, float) and pd.isna(val)):
+        return None
+    s = str(val).strip()
+    return s or None
+
+
+def _get_has_sql(row) -> Optional[bool]:
+    for key in ("has_sql_asset", "has_sql"):
+        val = row.get(key)
+        if val is not None and not (isinstance(val, float) and pd.isna(val)):
+            return bool(val)
+    return None
+
+
 def _row_to_summary(row) -> QuestionSummary:
     return QuestionSummary(
         question_id=str(row.get("question_id", "")),
         chapter_name=str(row.get("chapter_name", "") or ""),
-        subject_name=str(row.get("subject_name", "") or "") or None,
-        question_type=str(row.get("question_type", "") or "") or None,
-        difficulty_label=str(row.get("difficulty_label", "") or "") or None,
+        subject_name=_safe_str(row.get("subject_name")),
+        question_type=_safe_str(row.get("question_type")),
+        difficulty_label=_safe_str(row.get("difficulty_label")),
         question_text=str(row.get("question_text", "") or ""),
+        has_sql=_get_has_sql(row),
     )
 
 
 def _row_to_detail(row) -> QuestionDetail:
+    sql_raw = row.get("sql_code") or row.get("sql_content")
+    correct_raw = row.get("correct_choice") if row.get("correct_choice") is not None else row.get("correct_answer")
     return QuestionDetail(
         question_id=str(row.get("question_id", "")),
         chapter_name=str(row.get("chapter_name", "") or ""),
-        subject_name=str(row.get("subject_name", "") or "") or None,
-        question_type=str(row.get("question_type", "") or "") or None,
-        difficulty_label=str(row.get("difficulty_label", "") or "") or None,
+        subject_name=_safe_str(row.get("subject_name")),
+        question_type=_safe_str(row.get("question_type")),
+        difficulty_label=_safe_str(row.get("difficulty_label")),
         question_text=str(row.get("question_text", "") or ""),
-        choices=row.get("choices") if row.get("choices") else None,
-        correct_answer=row.get("correct_answer") if row.get("correct_answer") else None,
-        explanation=str(row.get("explanation", "") or "") or None,
-        has_sql=bool(row.get("has_sql")) if row.get("has_sql") is not None else None,
+        choices=row.get("choices") if row.get("choices") is not None else None,
+        correct_answer=int(correct_raw) if correct_raw is not None and str(correct_raw).isdigit() else correct_raw,
+        explanation=_safe_str(row.get("explanation")),
+        has_sql=_get_has_sql(row),
+        sql_content=_safe_str(sql_raw),
     )
 
 

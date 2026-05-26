@@ -10,13 +10,14 @@ class QuestionSummary(BaseModel):
     question_type: Optional[str] = None
     difficulty_label: Optional[str] = None
     question_text: str
+    has_sql: Optional[bool] = None
 
 
 class QuestionDetail(QuestionSummary):
     choices: Optional[Any] = None
     correct_answer: Optional[Any] = None
     explanation: Optional[str] = None
-    has_sql: Optional[bool] = None
+    sql_content: Optional[str] = None
 
 
 class QuestionListResponse(BaseModel):
