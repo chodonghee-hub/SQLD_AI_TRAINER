@@ -1,0 +1,34 @@
+=== Subject Classification (3 classes: 1=Modeling, 2=SQL Basics, 3=SQL Tuning) ===
+Model: TF-IDF (char_wb, 2-4) + Logistic Regression
+Train size: 237  |  Test size: 60
+Accuracy: 0.817
+Weighted F1: 0.814
+CV Accuracy (5-fold): 0.747 ± 0.026
+
+              precision    recall  f1-score   support
+
+           1       0.67      0.60      0.63        10
+           2       0.91      0.77      0.83        26
+           3       0.79      0.96      0.87        24
+
+    accuracy                           0.82        60
+   macro avg       0.79      0.78      0.78        60
+weighted avg       0.82      0.82      0.81        60
+
+
+=== Difficulty Classification (3 classes: Easy, Medium, Hard) ===
+Model: TF-IDF (char_wb, 2-4) + Logistic Regression
+Train size: 237  |  Test size: 60
+Accuracy: 0.900
+Weighted F1: 0.897
+※ difficulty_label은 features.py의 규칙 기반 레이블 / 동일 피처 학습 시 높은 정확도 예상됨
+
+              precision    recall  f1-score   support
+
+        Easy       0.88      0.97      0.92        31
+        Hard       0.86      0.67      0.75         9
+      Medium       0.95      0.90      0.92        20
+
+    accuracy                           0.90        60
+   macro avg       0.90      0.84      0.87        60
+weighted avg       0.90      0.90      0.90        60

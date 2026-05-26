@@ -1,0 +1,31 @@
+=== Wrong Answer Prediction ===
+Model: RandomForest (n_estimators=200, max_depth=10)
+Train size: 46569  |  Test size: 11643
+AUC-ROC: 0.694
+F1 (binary): 0.614
+Precision: 0.622  |  Recall: 0.605
+
+              precision    recall  f1-score   support
+
+           0       0.69      0.70      0.69      6419
+           1       0.62      0.61      0.61      5224
+
+    accuracy                           0.66     11643
+   macro avg       0.65      0.65      0.65     11643
+weighted avg       0.66      0.66      0.66     11643
+
+
+=== XGBoost Comparison ===
+Model: XGBoost (n_estimators=200, max_depth=6, lr=0.05)
+AUC-ROC: 0.696
+F1 (binary): 0.601
+Precision: 0.631  |  Recall: 0.573
+
+              precision    recall  f1-score   support
+
+           0       0.68      0.73      0.70      6419
+           1       0.63      0.57      0.60      5224
+
+    accuracy                           0.66     11643
+   macro avg       0.65      0.65      0.65     11643
+weighted avg       0.66      0.66      0.66     11643
