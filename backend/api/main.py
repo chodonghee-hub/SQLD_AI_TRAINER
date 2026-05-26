@@ -11,7 +11,12 @@ Swagger UI:
     JWT_SECRET_KEY   JWT 서명 키 (기본값: dev용 임시 키)
     GROQ_API_KEY     Groq LLM API 키 (없으면 RAG fallback)
 """
+import pathlib
 from contextlib import asynccontextmanager
+
+from dotenv import load_dotenv
+
+load_dotenv(pathlib.Path(__file__).resolve().parent.parent / ".env")
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
