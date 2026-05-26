@@ -1,9 +1,15 @@
 PRD/
 datasets/
 workflow/
+trouble_shooting/
 
 # 생성 데이터 (재현 가능하므로 추적 불필요)
 outputs/
+
+# 데이터베이스 파일
+*.db
+*.sqlite
+*.sqlite3
 
 # Python
 __pycache__/
