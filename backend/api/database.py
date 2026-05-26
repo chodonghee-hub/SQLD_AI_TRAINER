@@ -1,10 +1,12 @@
 import datetime
+import pathlib
 import uuid
 
 from sqlalchemy import Boolean, Column, DateTime, Float, Integer, String, create_engine
 from sqlalchemy.orm import DeclarativeBase, sessionmaker
 
-DATABASE_URL = "sqlite:///./sqld_learning.db"
+_DB_PATH = pathlib.Path(__file__).resolve().parent.parent / "sqld_learning.db"
+DATABASE_URL = f"sqlite:///{_DB_PATH}"
 
 engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
