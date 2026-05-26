@@ -7,7 +7,13 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 
-SECRET_KEY = os.getenv("JWT_SECRET_KEY", "sqld-dev-secret-change-in-production")
+_secret = os.getenv("JWT_SECRET_KEY")
+if not _secret:
+    raise RuntimeError(
+        "JWT_SECRET_KEY environment variable is not set. "
+        "Add it to your .env file before starting the server."
+    )
+SECRET_KEY: str = _secret
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_HOURS = 24
 GUEST_TOKEN_EXPIRE_HOURS = 1

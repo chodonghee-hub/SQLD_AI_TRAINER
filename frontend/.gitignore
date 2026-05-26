@@ -23,3 +23,10 @@ dist-ssr
 *.sln
 *.sw?
 package-lock.json
+
+# Design prototype files (content absorbed into index.css / TypeScript components)
+src/screens.jsx
+src/screens-v1.jsx
+src/design.css
+src/design-v1.css
+src/design-canvas.jsx
