@@ -20,14 +20,15 @@ SQLD(SQL 개발자 자격증) 기출 문제를 기반으로 **ML · DKT · RAG/L
 
 1. [프로젝트 개요](#프로젝트-개요)
 2. [시스템 아키텍처](#시스템-아키텍처)
-3. [AI 모델 상세](#ai-모델-상세)
-4. [백엔드](#백엔드)
-5. [프론트엔드](#프론트엔드)
-6. [코드 관리 전략](#코드-관리-전략)
-7. [로컬 실행](#로컬-실행)
-8. [배포](#배포)
-9. [API 명세](#api-명세)
-10. [데이터셋](#데이터셋)
+3. [데이터 전처리 및 파이프라인](#데이터-전처리-및-파이프라인)
+4. [AI 모델 상세](#ai-모델-상세)
+5. [백엔드](#백엔드)
+6. [프론트엔드](#프론트엔드)
+7. [코드 관리 전략](#코드-관리-전략)
+8. [로컬 실행](#로컬-실행)
+9. [배포](#배포)
+10. [API 명세](#api-명세)
+11. [데이터셋](#데이터셋)
 
 ---
 
@@ -92,38 +93,193 @@ async def lifespan(app: FastAPI):
 
 ---
 
-## AI 모델 상세
+## 데이터 전처리 및 파이프라인
 
-### Phase 1 — 데이터 파이프라인
+ML 모델 학습에 사용할 정형 데이터를 생성하는 오프라인 파이프라인이다. `backend/src/data/pipeline.py`를 진입점으로 세 단계가 순서대로 실행된다.
 
-**JSON 파싱 (`json_parser.py`)**
+```
+datasets/json/*.json (12개 챕터)
+        │
+        ▼  [1단계] json_parser.py
+  원시 DataFrame
+  (question_id, question_text, sql_code, choices, explanation ...)
+        │
+        ▼  [2단계] features.py
+  Feature DataFrame
+  (+ question_type_encoded, choice_kind_complexity, difficulty, difficulty_label)
+        │
+        ├──► outputs/questions.csv   ← API·ML 공용 문제 마스터 데이터
+        │
+        ▼  [3단계] simulator.py
+  시뮬레이션 학습 이력
+  (user_id, question_id, is_correct, solve_time_sec, submitted_at ...)
+        │
+        └──► outputs/user_logs.csv  ← ML 모델 학습용 이력 데이터
+```
 
-12개 챕터 JSON 파일을 파싱해 정형화된 DataFrame으로 변환한다. `(subject_id, chapter_id)` 쌍으로 챕터명을 매핑하며, 선택지·SQL 코드·해설 텍스트를 추출한다.
-
-**규칙 기반 난이도 추정 (`features.py`)**
-
-원본 데이터에 `difficulty` 필드가 없어 문제 유형과 챕터로 자동 추정한다.
-
-| 조건 | 난이도 |
-|------|--------|
-| `question_type = different_result` | Hard |
-| `question_type = fill_blank` + SQL 튜닝 챕터 | Hard |
-| SQL 관련 선택지 포함 | Medium |
-| 그 외 | Easy |
-
-**시뮬레이션 학습 이력 (`simulator.py`)**
-
-실제 사용자 이력이 없으므로 100명의 가상 사용자 풀이 이력을 생성한다.
-
-| 사용자 유형 | 기본 정답률 | 특징 |
-|------------|------------|------|
-| beginner (40%) | 40% | 낮은 초기 정답률 |
-| intermediate (40%) | 65% | 중간 수준 |
-| advanced (20%) | 85% | 높은 정답률 |
-
-반복 학습 효과: 같은 문제를 풀 때마다 정답률 +2% (Knowledge Gain 모델링).
+파이프라인 완료 후 `_verify()` 함수로 자동 품질 검증을 수행한다.
+- `question_id` 중복 여부 확인
+- 각 난이도(`Easy` / `Medium` / `Hard`) 비율이 5% 이상인지 확인
 
 ---
+
+### 1단계 — JSON 파싱 (`json_parser.py`)
+
+12개 챕터 JSON 파일을 순회해 정형화된 DataFrame으로 변환한다.
+
+**question_id 생성 규칙**
+
+```
+question_id = f"{subject_id}_{chapter_id}_{question_number}"
+# 예: "2_1_5"  → Part II, Chapter 1, 5번 문제
+```
+
+중복 여부는 파싱 직후 `assert df["question_id"].is_unique`로 즉시 검증한다.
+
+**asset 추출**
+
+JSON의 `assets` 배열에는 문제 본문(`text_block`)과 SQL 코드(`sql_query`)가 혼재한다.
+
+```python
+def _extract_assets(assets):
+    texts = [a["payload"]["text"]         for a in assets if a["asset_type"] == "text_block"]
+    sqls  = [a["payload"].get("code", "") for a in assets if a["asset_type"] == "sql_query"]
+    return " ".join(texts), "\n".join(sqls)
+```
+
+SQL 코드가 하나라도 추출되면 `has_sql_asset = True`로 기록한다.
+
+**선택지 정보 추출**
+
+| 추출 항목 | 컬럼 | 설명 |
+|-----------|------|------|
+| 각 선택지의 `choice_kind` | `choice_kinds` | 쉼표 구분 문자열 (예: `"text,sql_query,keyword"`) |
+| 정답 번호 | `correct_choice` | `is_correct: true`인 `choice_number` |
+| 선택지 전체 | `choices` | JSON 문자열 (`[{"number": 1, "text": "..."}]`) |
+
+**파싱 결과 컬럼 목록**
+
+| 컬럼 | 타입 | 설명 |
+|------|------|------|
+| `question_id` | str | 고유 식별자 (`subject_chapter_number`) |
+| `subject_id` | int | 파트 번호 (1~3) |
+| `chapter_id` | int | 챕터 번호 |
+| `chapter_name` | str | 챕터명 (`CHAPTER_NAMES` 매핑) |
+| `question_type` | str | worst_choice / best_choice / fill_blank / different_result |
+| `question_text` | str | 문제 본문 (text_block 합산) |
+| `sql_code` | str | SQL 코드 블록 (없으면 빈 문자열) |
+| `has_sql_asset` | bool | SQL 포함 여부 |
+| `choice_kinds` | str | 선택지 유형 쉼표 목록 |
+| `correct_choice` | int | 정답 번호 |
+| `explanation` | str | 해설 텍스트 |
+
+---
+
+### 2단계 — Feature 엔지니어링 (`features.py`)
+
+원시 DataFrame에 ML 모델 입력용 수치 Feature 4개를 추가한다.
+
+**① question_type_encoded** — 문제 유형 정수 인코딩
+
+| question_type | 인코딩 값 |
+|---------------|-----------|
+| worst_choice | 0 |
+| best_choice | 1 |
+| fill_blank | 2 |
+| different_result | 3 |
+
+**② choice_kind_complexity** — 선택지 복잡도 점수 (0~3)
+
+선택지 유형마다 인지 부하를 점수화하고, 한 문제에 여러 유형이 섞인 경우 **가장 높은 점수**를 채택한다.
+
+| choice_kind | 점수 | 이유 |
+|-------------|------|------|
+| keyword | 0 | 단순 키워드 |
+| text | 1 | 자연어 보기 |
+| sql_fragment | 2 | SQL 일부 |
+| sql_query | 3 | 완전한 SQL문 |
+
+**③ difficulty / difficulty_label** — 규칙 기반 난이도 추정
+
+원본 JSON에 `difficulty` 필드가 없으므로 `question_type`과 `subject_id`, `has_sql_asset`을 조합해 자동 추정한다.
+
+```
+different_result            → Hard  (결과 비교는 실행 오류를 잡아야 함)
+fill_blank                  → Medium 기본
+best_choice / worst_choice  → Easy 기본
+
+위 기본값에서 아래 규칙으로 상향 조정:
+  has_sql_asset AND subject_id == 3  → Hard  (SQL 튜닝 파트 SQL 문제)
+  subject_id == 3 (SQL 튜닝 파트)    → 한 단계 상향 (Easy→Medium, Medium→Hard)
+```
+
+| difficulty 값 | difficulty_label | 적용 조건 요약 |
+|---------------|-----------------|----------------|
+| 0 | Easy | best/worst_choice, 비튜닝 파트 |
+| 1 | Medium | fill_blank 기본 / 튜닝 파트 Easy 문제 |
+| 2 | Hard | different_result / 튜닝 파트 SQL 포함 문제 |
+
+---
+
+### 3단계 — 시뮬레이션 학습 이력 (`simulator.py`)
+
+실제 사용자 이력이 없으므로 **가상 100명**의 풀이 이력을 수식 기반으로 생성한다. 재현성을 위해 `numpy.random.default_rng(seed=42)`를 사용한다.
+
+**사용자 분포**
+
+| 레벨 | 비율 | 기본 정답률 |
+|------|------|-------------|
+| beginner | 40% | 40% |
+| intermediate | 40% | 65% |
+| advanced | 20% | 85% |
+
+**정답 확률 계산식**
+
+각 풀이 시도에서 정답 확률 `acc`를 아래 식으로 계산한 뒤 베르누이 시행으로 `is_correct`를 결정한다.
+
+```
+acc = clamp(base_acc + difficulty_penalty + knowledge_gain × (attempt - 1), 0.05, 0.95)
+
+difficulty_penalty: Easy=0.0, Medium=-0.05, Hard=-0.15
+knowledge_gain:     동일 문제 재시도마다 +0.02 (반복 학습 효과)
+```
+
+예시: `intermediate` 사용자가 `Hard` 문제를 3번째 시도할 때
+```
+acc = clamp(0.65 + (-0.15) + 0.02 × 2, 0.05, 0.95) = 0.54
+```
+
+**풀이 시간 시뮬레이션**
+
+난이도별로 정규분포에서 샘플링한다.
+
+| difficulty | 평균(초) | 표준편차(초) |
+|------------|---------|-------------|
+| Easy | 30 | 10 |
+| Medium | 60 | 15 |
+| Hard | 90 | 20 |
+
+최소값 5초로 클램핑 (`max(5, sampled_time)`).
+
+**풀이 라운드 구성**
+
+각 사용자는 전체 297문제를 1~3라운드 무작위로 반복 풀이한다. 라운드 간 간격은 2주(`14일`)로 설정해 시간적 분포를 만든다.
+
+**생성 결과 컬럼**
+
+| 컬럼 | 설명 |
+|------|------|
+| `user_id` | 가상 사용자 ID (`user_001` ~ `user_100`) |
+| `question_id` | 풀이한 문제 ID |
+| `user_level` | beginner / intermediate / advanced |
+| `is_correct` | 정답 여부 (bool) |
+| `solve_time_sec` | 풀이 소요 시간(초) |
+| `submitted_at` | 제출 일시 (2025-01-01 기준 시뮬레이션) |
+| `attempt_count` | 해당 사용자의 해당 문제 누적 시도 횟수 |
+
+---
+
+## AI 모델 상세
 
 ### Phase 2 — 머신러닝 모델
 
