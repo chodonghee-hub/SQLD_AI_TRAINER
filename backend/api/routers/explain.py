@@ -18,6 +18,7 @@ def generate_explanation(body: ExplainRequest, request: Request):
         return explain_cache[cache_key]
 
     state = request.app.state.models
+    state.load_explainer_if_needed()
     if state.explainer is None:
         raise HTTPException(status_code=503, detail="RAG 해설기가 초기화되지 않았습니다.")
 
