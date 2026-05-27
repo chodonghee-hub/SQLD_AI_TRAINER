@@ -81,6 +81,7 @@ def predict_error(
 
     logs = db.query(AnswerLog).filter(AnswerLog.user_id == user_id).all()
 
+    state.load_predictor_if_needed()
     # 모델 없으면 통계 기반 fallback
     if state.predictor_model is None or state.predictor_feature_names is None:
         total = len(logs)
