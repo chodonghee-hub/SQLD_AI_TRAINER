@@ -12,11 +12,15 @@ Swagger UI:
     GROQ_API_KEY     Groq LLM API 키 (없으면 RAG fallback)
 """
 import asyncio
+import logging
 import os
 import pathlib
+import sys
 from contextlib import asynccontextmanager
 
 from dotenv import load_dotenv
+
+logger = logging.getLogger("uvicorn.error")
 
 load_dotenv(pathlib.Path(__file__).resolve().parent.parent / ".env")
 
@@ -33,7 +37,11 @@ async def lifespan(app: FastAPI):
     create_tables()
     app.state.models = app_state
     loop = asyncio.get_running_loop()
-    await loop.run_in_executor(None, app_state.load)
+    try:
+        await loop.run_in_executor(None, app_state.load)
+    except Exception as e:
+        print(f"[FATAL] 데이터 로딩 실패: {e}", file=sys.stderr, flush=True)
+        raise
     yield
 
 
@@ -88,7 +96,6 @@ def health_check():
 
 @app.get("/health", tags=["health"])
 def health():
-    from fastapi import Response
     state = app.state.models if hasattr(app.state, "models") else None
     data_ready = state is not None and state.questions_df is not None
     body = {
@@ -102,6 +109,8 @@ def health():
         },
     }
     if not data_ready:
+        logger.warning("[Health] questions_df 미준비 → 503 반환")
         from fastapi.responses import JSONResponse
         return JSONResponse(status_code=503, content=body)
+    logger.info("[Health] 정상 → 200 반환")
     return body
