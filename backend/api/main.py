@@ -31,11 +31,9 @@ from api.state import app_state
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     create_tables()
-    # app.state 먼저 바인딩 → /health 가 즉시 응답 가능
     app.state.models = app_state
-    # 모델 로딩을 백그라운드 스레드에서 실행 (서버 시작 차단 없음)
     loop = asyncio.get_running_loop()
-    loop.run_in_executor(None, app_state.load)
+    await loop.run_in_executor(None, app_state.load)
     yield
 
 
@@ -90,9 +88,12 @@ def health_check():
 
 @app.get("/health", tags=["health"])
 def health():
+    from fastapi import Response
     state = app.state.models if hasattr(app.state, "models") else None
-    return {
-        "status": "ok",
+    data_ready = state is not None and state.questions_df is not None
+    body = {
+        "status": "ok" if data_ready else "initializing",
+        "data_ready": data_ready,
         "models": {
             "recommender": state.recommender is not None if state else False,
             "dkt": state.dkt_model is not None if state else False,
@@ -100,3 +101,7 @@ def health():
             "predictor": state.predictor_model is not None if state else False,
         },
     }
+    if not data_ready:
+        from fastapi.responses import JSONResponse
+        return JSONResponse(status_code=503, content=body)
+    return body
