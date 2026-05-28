@@ -6,7 +6,6 @@ import pathlib
 import sys
 
 import pandas as pd
-import torch
 
 # src/models 를 import 경로에 추가
 _SRC_MODELS = pathlib.Path(__file__).resolve().parent.parent / "src" / "models"
@@ -37,10 +36,17 @@ class AppState:
         self.recommender = None  # dict
         self.dkt_model = None
         self.dkt_question_ids = None  # list
-        self.device = torch.device("cpu")
+        self._device = None
 
         # Phase 4 — RAG 해설기
         self.explainer = None
+
+    @property
+    def device(self):
+        if self._device is None:
+            import torch
+            self._device = torch.device("cpu")
+        return self._device
 
     # ------------------------------------------------------------------
     def load(self) -> None:
