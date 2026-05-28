@@ -32,8 +32,18 @@ from api.routers import auth, explain, logs, predict, progress, questions, recom
 from api.state import app_state
 
 
+def _log_mem(label: str) -> None:
+    try:
+        import resource
+        kb = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+        print(f"[MEM] {label}: {kb // 1024} MB", flush=True)
+    except Exception:
+        pass
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    _log_mem("startup-begin")
     create_tables()
     app.state.models = app_state
     loop = asyncio.get_running_loop()
@@ -42,6 +52,7 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         print(f"[FATAL] 데이터 로딩 실패: {e}", file=sys.stderr, flush=True)
         raise
+    _log_mem("startup-complete")
     yield
 
 
