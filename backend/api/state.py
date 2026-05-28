@@ -45,10 +45,16 @@ class AppState:
     # ------------------------------------------------------------------
     def load(self) -> None:
         self._load_data()
-        self._load_recommender()
-        self._load_predictor()
-        # DKT(PyTorch)와 RAG 해설기(FAISS)는 메모리가 커서 요청 시 지연 로딩
-        print("[AppState] 기본 모델 로딩 완료 (DKT/RAG는 지연 로딩)")
+        # recommender/predictor/DKT/RAG는 첫 요청 시 지연 로딩 (OOM 방지)
+        print("[AppState] 데이터 로딩 완료 (recommender/predictor/DKT/RAG는 지연 로딩)")
+
+    def load_recommender_if_needed(self) -> None:
+        if self.recommender is None:
+            self._load_recommender()
+
+    def load_predictor_if_needed(self) -> None:
+        if self.predictor_model is None:
+            self._load_predictor()
 
     def load_dkt_if_needed(self) -> None:
         if self.dkt_model is None:

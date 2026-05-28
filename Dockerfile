@@ -23,6 +23,6 @@ COPY datasets/json/ ./datasets/json/
 # uvicorn을 backend/ 내부에서 실행해야 api.* 임포트가 동작
 WORKDIR /app/backend
 
-EXPOSE 8000
+EXPOSE 8080
 
-CMD uvicorn api.main:app --host 0.0.0.0 --port ${PORT:-8000}
+CMD ["sh", "-c", "exec uvicorn api.main:app --host 0.0.0.0 --port ${PORT:-8080} --proxy-headers --forwarded-allow-ips='*'"]

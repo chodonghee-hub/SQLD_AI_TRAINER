@@ -80,6 +80,7 @@ def recommend_questions(
         raise HTTPException(status_code=403, detail="본인의 추천만 조회할 수 있습니다.")
 
     state = request.app.state.models
+    state.load_recommender_if_needed()
     if state.recommender is None:
         raise HTTPException(status_code=503, detail="추천 모델이 초기화되지 않았습니다.")
 

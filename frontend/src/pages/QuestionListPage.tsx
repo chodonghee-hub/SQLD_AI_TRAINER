@@ -25,6 +25,12 @@ export default function QuestionListPage() {
     queryKey: ['questions', params],
     queryFn: () => questionsApi.list(params).then((r) => r.data),
     staleTime: 5 * 60 * 1000,
+    retry: (failureCount, error: any) => {
+      const status = error?.response?.status;
+      if (status === 502 || status === 503) return failureCount < 4;
+      return false;
+    },
+    retryDelay: (attempt) => Math.min(2000 * (attempt + 1), 10000),
   });
 
   const questions = data?.questions ?? [];
@@ -53,7 +59,7 @@ export default function QuestionListPage() {
         <div>
           <h1 className="t-h1">문제 목록</h1>
           <p className="t-body-2" style={{ margin: '6px 0 0' }}>
-            총 297문제 · 필터 결과{' '}
+            {data ? `총 ${data.total}문제` : '로딩 중…'} · 필터 결과{' '}
             <strong style={{ color: 'var(--text)' }}>{total}문제</strong>
           </p>
         </div>
