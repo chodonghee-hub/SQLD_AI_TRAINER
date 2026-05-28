@@ -68,7 +68,6 @@ app.add_middleware(
         "https://sqld-ai-trainer.vercel.app",
         *_extra_origins,
     ],
-    allow_origin_regex=r"https://sqld-ai-trainer-.*\.vercel\.app",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
